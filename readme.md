@@ -14,4 +14,6 @@ I'm building for Windows but developing on WSL (Ubuntu 20.04.5 LTS)
 1. Install MinGW-w64 and its dependencies
 2. Clone repository
 3. Download glfw binaries and place in project folder
-4. 
+4. In the main project folder run `cmake -S . -B build`
+5. cd build
+6. Run `cmake --build .`
