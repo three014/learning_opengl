@@ -7,6 +7,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
@@ -130,7 +131,7 @@ int main()
         error_callback("STDIO::FILE::FOPEN_FAILED", strerror(errno));
     }
 
-    file_in = fopen("../src/shaders/yellow.frag", "r");
+    file_in = fopen("../src/shaders/uniform.frag", "r");
     if (file_in)
     {
         build_fragment_shader(file_in, &fragmentShaderSource2, 
@@ -199,7 +200,17 @@ int main()
         glad_glBindVertexArray(VAO[0]);
         glad_glDrawArrays(GL_TRIANGLES, 0, 3);
         /* Draw 2nd Triangle */
+        /* Activate 2nd shader */
         glad_glUseProgram(shaderProgram[1]);
+        /* Update the uniform color */
+        float timeValue = glfwGetTime();
+        float greenValue = sin(timeValue) / 2.0f + 0.5f;
+        int vertexColorLocation = 
+                glad_glGetUniformLocation(shaderProgram[1], 
+                        "ourColor");
+        glad_glUniform4f(vertexColorLocation, 0.0f, 
+                greenValue, 0.0f, 1.0f);
+        /* Render the triangle */
         glad_glBindVertexArray(VAO[1]);
         glad_glDrawArrays(GL_TRIANGLES, 0, 3);
 
