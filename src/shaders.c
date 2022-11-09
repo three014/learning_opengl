@@ -64,10 +64,7 @@ int parse_shader(FILE *in, char **shader)
     return 1;
 }
 
-void build_vertex_shader(/*FILE *file_in,
-                         char **vs_str,
-                         unsigned int* vertex_shader*/
-                         vertex_shader *vert)
+void build_vertex_shader(vertex_shader *vert)
 {
     int success;
     char info_log[INFO_LOG_SIZE];
@@ -102,10 +99,7 @@ void build_vertex_shader(/*FILE *file_in,
     free(vert->src_code);
 }
 
-void build_fragment_shader(/*FILE *file_in, */
-                           /*char **fs_str, */
-                           /*unsigned int* fragment_shader*/
-                           fragment_shader *frag)
+void build_fragment_shader(fragment_shader *frag)
 {
     int success;
     int parsed_correctly;

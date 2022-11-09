@@ -116,66 +116,15 @@ int main()
     /* Build and compile our shader program */
     
     // 1st Vertex Shader
-    /*
-    file_in = fopen("../src/shaders/customshader.vert", "r");
-    if (file_in)
-    {
-        build_vertex_shader(file_in, &vertexShaderSource1, vertexShader + 0);
-        fclose(file_in);
-        file_in = NULL;
-    }
-    else 
-    {
-        error_callback("STDIO::FILE::FOPEN_FAILED", strerror(errno));
-    }
-    */
     build_vertex_shader(&hello.vert);
 
     // 2nd Vertex Shader
-    /*
-    file_in = fopen("../src/shaders/shader.vert", "r");
-    if (file_in)
-    {
-        build_vertex_shader(file_in, &vertexShaderSource2, vertexShader + 1);
-        fclose(file_in);
-        file_in = NULL;
-    }
-    else 
-    {
-        error_callback("STDIO::FILE::FOPEN_FAILED", strerror(errno));
-    }
-    */
     build_vertex_shader(&hi.vert);
 
     // 1st Fragment Shader
-    /*
-    file_in = fopen("../src/shaders/vertexColor.frag", "r");
-    if (file_in)
-    {
-        build_fragment_shader(file_in, 
-                &fragmentShaderSource1, fragmentShader + 0);
-        fclose(file_in);
-        file_in = NULL;
-    }
-    else 
-    {
-        error_callback("STDIO::FILE::FOPEN_FAILED", strerror(errno));
-    } */
     build_fragment_shader(&hello.frag);
 
-    /*
-    file_in = fopen("../src/shaders/uniform.frag", "r");
-    if (file_in)
-    {
-        build_fragment_shader(file_in, 
-                &fragmentShaderSource2, fragmentShader + 1);
-        fclose(file_in);
-        file_in = NULL;
-    }
-    else
-    {
-        error_callback("STDIO::FILE::FOPEN_FAILED", strerror(errno));
-    }*/
+    // 2nd Fragment Shader
     build_fragment_shader(&hi.frag);
 
     /* Link shaders */
@@ -184,12 +133,11 @@ int main()
 
     info_callback("SHADERS::COMPILE::SUCCESS");
     /* Free memory */
-    //glad_glDeleteShader(hello.vert.id);
-    //glad_glDeleteShader(hi.vert.id);
-    //glad_glDeleteShader(hello.frag.id);
-    //glad_glDeleteShader(hi.frag.id);
+    glad_glDeleteShader(hello.vert.id);
+    glad_glDeleteShader(hi.vert.id);
+    glad_glDeleteShader(hello.frag.id);
+    glad_glDeleteShader(hi.frag.id);
 
-    //info_callback("MEMORY::FREE_UNUSED::SUCCESS");
     /* Set up vertex data (and buffer(s)) and configure vertex attributes */
     glad_glGenVertexArrays(2, VAO);
     glad_glGenBuffers(2, VBO);
@@ -226,18 +174,23 @@ int main()
         /* Input */       
         processInput(window);
 
+
         /* Rendering commands */
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+
         /* RECTANGLE */
+        
         /* Draw 1st Triangle */
         glad_glUseProgram(hello.program);
         glad_glBindVertexArray(VAO[0]);
         glad_glDrawArrays(GL_TRIANGLES, 0, 3);
+        
         /* Draw 2nd Triangle */
         /* Activate 2nd shader */
         glad_glUseProgram(hi.program);
+        
         /* Update the uniform color */
         float timeValue = glfwGetTime();
         float greenValue = sin(timeValue) / 2.0f + 0.5f;
@@ -245,12 +198,15 @@ int main()
                 glad_glGetUniformLocation(hi.program, "ourColor");
         glad_glUniform4f(vertexColorLocation, 0.0f, 
                 greenValue, 0.0f, 1.0f);
+        
         /* Render the triangle */
         glad_glBindVertexArray(VAO[1]);
         glad_glDrawArrays(GL_TRIANGLES, 0, 3);
 
+
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
+
 
         /* Poll for and process events */
         glfwPollEvents();
