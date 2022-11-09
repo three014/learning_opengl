@@ -8,10 +8,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
-#define MAX_SHADER_SIZE 256 * 10
 
 float triangle_one[] =
 {
@@ -42,20 +42,30 @@ unsigned int rectangle_indices[] =
 };
 
 
-char *vertexShaderSource1;
-char *vertexShaderSource2;
-char *fragmentShaderSource1;
-char *fragmentShaderSource2;
+//char *vertexShaderSource1;
+//char *vertexShaderSource2;
+//char *fragmentShaderSource1;
+//char *fragmentShaderSource2;
 
 int main()
 {
     int success;
     char infoLog[512];
     unsigned int VBO[2], VAO[2];
-    unsigned int vertexShader[2];
-    unsigned int fragmentShader[2];
-    unsigned int shaderProgram[2];
     FILE *file_in;
+
+    /* TEST */
+    basic_shader hello;
+    hello.vert.src_code = NULL;
+    hello.frag.src_code = NULL;
+    strncpy(hello.frag.file_loc, "../src/shaders/vertexColor.frag", BUFFER_SIZE);
+    strncpy(hello.vert.file_loc, "../src/shaders/customshader.vert", BUFFER_SIZE);
+
+    basic_shader hi;
+    hi.vert.src_code = NULL;
+    hi.frag.src_code = NULL;
+    strncpy(hi.frag.file_loc, "../src/shaders/uniform.frag", BUFFER_SIZE);
+    strncpy(hi.vert.file_loc, "../src/shaders/shader.vert", BUFFER_SIZE);
 
 
     //glfwSetErrorCallback(error_callback);
@@ -103,14 +113,14 @@ int main()
     /* --------------------------------------------------------------------- */
 
 
-    /* Build and Compile our shader program */
+    /* Build and compile our shader program */
     
     // 1st Vertex Shader
+    /*
     file_in = fopen("../src/shaders/customshader.vert", "r");
     if (file_in)
     {
-        build_vertex_shader(file_in, &vertexShaderSource1, 
-                MAX_SHADER_SIZE, vertexShader + 0);
+        build_vertex_shader(file_in, &vertexShaderSource1, vertexShader + 0);
         fclose(file_in);
         file_in = NULL;
     }
@@ -118,13 +128,15 @@ int main()
     {
         error_callback("STDIO::FILE::FOPEN_FAILED", strerror(errno));
     }
+    */
+    build_vertex_shader(&hello.vert);
 
     // 2nd Vertex Shader
+    /*
     file_in = fopen("../src/shaders/shader.vert", "r");
     if (file_in)
     {
-        build_vertex_shader(file_in, &vertexShaderSource2, 
-                MAX_SHADER_SIZE, vertexShader + 1);
+        build_vertex_shader(file_in, &vertexShaderSource2, vertexShader + 1);
         fclose(file_in);
         file_in = NULL;
     }
@@ -132,48 +144,52 @@ int main()
     {
         error_callback("STDIO::FILE::FOPEN_FAILED", strerror(errno));
     }
+    */
+    build_vertex_shader(&hi.vert);
 
     // 1st Fragment Shader
+    /*
     file_in = fopen("../src/shaders/vertexColor.frag", "r");
     if (file_in)
     {
-        build_fragment_shader(file_in, &fragmentShaderSource1, 
-                MAX_SHADER_SIZE, (fragmentShader + 0));
+        build_fragment_shader(file_in, 
+                &fragmentShaderSource1, fragmentShader + 0);
         fclose(file_in);
         file_in = NULL;
     }
     else 
     {
         error_callback("STDIO::FILE::FOPEN_FAILED", strerror(errno));
-    }
+    } */
+    build_fragment_shader(&hello.frag);
 
+    /*
     file_in = fopen("../src/shaders/uniform.frag", "r");
     if (file_in)
     {
-        build_fragment_shader(file_in, &fragmentShaderSource2, 
-                MAX_SHADER_SIZE, (fragmentShader + 1));
+        build_fragment_shader(file_in, 
+                &fragmentShaderSource2, fragmentShader + 1);
         fclose(file_in);
         file_in = NULL;
     }
     else
     {
         error_callback("STDIO::FILE::FOPEN_FAILED", strerror(errno));
-    }
+    }*/
+    build_fragment_shader(&hi.frag);
 
     /* Link shaders */
-    compile_shaders(vertexShader + 0, fragmentShader + 0, 
-            shaderProgram + 0);
-    compile_shaders(vertexShader + 1, fragmentShader + 1, 
-            shaderProgram + 1);
-    free(vertexShaderSource1);
-    free(vertexShaderSource2);
-    free(fragmentShaderSource1);
-    free(fragmentShaderSource2);
-    glad_glDeleteShader(vertexShader[0]);
-    glad_glDeleteShader(vertexShader[1]);
-    glad_glDeleteShader(fragmentShader[0]);
-    glad_glDeleteShader(fragmentShader[1]);
+    compile_shaders(&hello.vert.id, &hello.frag.id, &hello.program);
+    compile_shaders(&hi.vert.id, &hi.frag.id, &hi.program);
 
+    info_callback("SHADERS::COMPILE::SUCCESS");
+    /* Free memory */
+    //glad_glDeleteShader(hello.vert.id);
+    //glad_glDeleteShader(hi.vert.id);
+    //glad_glDeleteShader(hello.frag.id);
+    //glad_glDeleteShader(hi.frag.id);
+
+    //info_callback("MEMORY::FREE_UNUSED::SUCCESS");
     /* Set up vertex data (and buffer(s)) and configure vertex attributes */
     glad_glGenVertexArrays(2, VAO);
     glad_glGenBuffers(2, VBO);
@@ -201,7 +217,6 @@ int main()
     glad_glEnableVertexAttribArray(0);
     glad_glBindVertexArray(0);
 
-
     /* --------------------------------------------------------------------- */
 
 
@@ -217,18 +232,17 @@ int main()
 
         /* RECTANGLE */
         /* Draw 1st Triangle */
-        glad_glUseProgram(shaderProgram[0]);
+        glad_glUseProgram(hello.program);
         glad_glBindVertexArray(VAO[0]);
         glad_glDrawArrays(GL_TRIANGLES, 0, 3);
         /* Draw 2nd Triangle */
         /* Activate 2nd shader */
-        glad_glUseProgram(shaderProgram[1]);
+        glad_glUseProgram(hi.program);
         /* Update the uniform color */
         float timeValue = glfwGetTime();
         float greenValue = sin(timeValue) / 2.0f + 0.5f;
         int vertexColorLocation = 
-                glad_glGetUniformLocation(shaderProgram[1], 
-                        "ourColor");
+                glad_glGetUniformLocation(hi.program, "ourColor");
         glad_glUniform4f(vertexColorLocation, 0.0f, 
                 greenValue, 0.0f, 1.0f);
         /* Render the triangle */
@@ -244,11 +258,12 @@ int main()
 
     glad_glDeleteVertexArrays(2, VAO);
     glad_glDeleteBuffers(2, VBO);
-    glad_glDeleteProgram(shaderProgram[0]);
-    glad_glDeleteProgram(shaderProgram[1]);
+    glad_glDeleteProgram(hello.program);
+    glad_glDeleteProgram(hi.program);
 
     glfwDestroyWindow(window);
-    glfwTerminate(); // Currently gives a SegFault
+    glfwTerminate(); // Currently gives a SegFault on Linux,
+                     // but not on Windows?
     return 0;
 }
 

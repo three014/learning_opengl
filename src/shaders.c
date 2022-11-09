@@ -4,9 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-int parse_shader(FILE *in, char **shader, int shader_size)
+int parse_shader(FILE *in, char **shader)
 {
     char buffer[BUFFER_SIZE];
+    int shader_size = MAX_SHADER_SIZE;
 
     /* Check if the input shader string is empty.
      * If not, then exit function with error */
@@ -63,59 +64,81 @@ int parse_shader(FILE *in, char **shader, int shader_size)
     return 1;
 }
 
-void build_vertex_shader(FILE *file_in,
+void build_vertex_shader(/*FILE *file_in,
                          char **vs_str,
-                         unsigned int max_strlen,
-                         unsigned int* vertex_shader)
+                         unsigned int* vertex_shader*/
+                         vertex_shader *vert)
 {
     int success;
     char info_log[INFO_LOG_SIZE];
+    int parsed_correctly;
+    FILE *file_in;
 
-    int parse_correctly = parse_shader(file_in, vs_str, max_strlen);
-    if (parse_correctly)
+    file_in = fopen(vert->file_loc, "r");
+    if (!file_in)
     {
-        *vertex_shader = glad_glCreateShader(GL_VERTEX_SHADER);
-        glad_glShaderSource(*vertex_shader, 1,
-                (const char *const *) vs_str, NULL);
+        error_callback("STDIO::FILE::FOPEN_FAILED", strerror(errno));
+        return;
+    }
 
-        glad_glCompileShader(*vertex_shader);
+    parsed_correctly = parse_shader(file_in, &vert->src_code);
+    if (parsed_correctly)
+    {
+        vert->id = glad_glCreateShader(GL_VERTEX_SHADER);
+        glad_glShaderSource(vert->id, 1,
+                (const char *const *) &vert->src_code, NULL);
+
+        glad_glCompileShader(vert->id);
         
-        glad_glGetShaderiv(*vertex_shader, GL_COMPILE_STATUS, &success);
+        glad_glGetShaderiv(vert->id, GL_COMPILE_STATUS, &success);
         if (!success)
         {
-            glad_glGetShaderInfoLog(*vertex_shader, 
+            glad_glGetShaderInfoLog(vert->id, 
                     INFO_LOG_SIZE, NULL, info_log);
             error_callback("SHADER::VERTEX::COMPILATION_FAILED", info_log);
         }
     }
+    fclose(file_in);
+    free(vert->src_code);
 }
 
-void build_fragment_shader(FILE *file_in, 
-                           char **fs_str, 
-                           unsigned int max_strlen, 
-                           unsigned int* fragment_shader)
+void build_fragment_shader(/*FILE *file_in, */
+                           /*char **fs_str, */
+                           /*unsigned int* fragment_shader*/
+                           fragment_shader *frag)
 {
     int success;
+    int parsed_correctly;
     char info_log[INFO_LOG_SIZE];
-
-    int parse_correctly = parse_shader(file_in, fs_str, max_strlen);    
-    if (parse_correctly)
+    FILE *file_in;
+    
+    file_in = fopen(frag->file_loc, "r");
+    if (!file_in)
     {
-        *fragment_shader = glad_glCreateShader(GL_FRAGMENT_SHADER);
-        glad_glShaderSource(*fragment_shader, 1, 
-                (const char *const *) fs_str, NULL);
-        glad_glCompileShader(*fragment_shader);
+        error_callback("STDIO::FILE::FOPEN_FAILED", strerror(errno));
+        return;
+    }
 
-        glad_glGetShaderiv(*fragment_shader, GL_COMPILE_STATUS, &success);
+    parsed_correctly = parse_shader(file_in, &frag->src_code);    
+    if (parsed_correctly)
+    {
+        frag->id = glad_glCreateShader(GL_FRAGMENT_SHADER);
+        glad_glShaderSource(frag->id, 1, 
+                (const char *const *) &frag->src_code, NULL);
+        glad_glCompileShader(frag->id);
+
+        glad_glGetShaderiv(frag->id, GL_COMPILE_STATUS, &success);
         if (!success)
         {
-            glad_glGetShaderInfoLog(*fragment_shader, 
+            glad_glGetShaderInfoLog(frag->id, 
                     INFO_LOG_SIZE, NULL, info_log);
             error_callback(
                     "SHADER::FRAGMENT::COMPILATION_FAILED", 
                     info_log);
         }
     }
+    fclose(file_in);
+    free(frag->src_code);
 }
 
 int compile_shaders(unsigned int *vertex_shader,
