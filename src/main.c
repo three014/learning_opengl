@@ -15,15 +15,16 @@
 
 float triangle_one[] =
 {
-    -0.5f, 0.5f, 0.0f,
-    0.5f, 0.5f, 0.0f,
-    -0.5f, -0.5f, 0.0f,
+    // positions            //colors
+    -0.5f,  0.5f, 0.0f,     1.0f, 0.0f, 0.0f,
+     0.5f,  0.5f, 0.0f,     0.0f, 1.0f, 0.0f,
+    -0.5f, -0.5f, 0.0f,     0.0f, 0.0f, 1.0f, 
 };
 
 float triangle_two[] = 
 {
-    0.5f, 0.5f, 0.0f,
-    0.5f, -0.5f, 0.0f,
+     0.5f,  0.5f, 0.0f,
+     0.5f, -0.5f, 0.0f,
     -0.5f, -0.5f, 0.0f,
 };
 
@@ -41,7 +42,8 @@ unsigned int rectangle_indices[] =
 };
 
 
-char *vertexShaderSource;
+char *vertexShaderSource1;
+char *vertexShaderSource2;
 char *fragmentShaderSource1;
 char *fragmentShaderSource2;
 
@@ -50,7 +52,7 @@ int main()
     int success;
     char infoLog[512];
     unsigned int VBO[2], VAO[2];
-    unsigned int vertexShader;
+    unsigned int vertexShader[2];
     unsigned int fragmentShader[2];
     unsigned int shaderProgram[2];
     FILE *file_in;
@@ -103,12 +105,26 @@ int main()
 
     /* Build and Compile our shader program */
     
-    // Vertex Shader
+    // 1st Vertex Shader
+    file_in = fopen("../src/shaders/customshader.vert", "r");
+    if (file_in)
+    {
+        build_vertex_shader(file_in, &vertexShaderSource1, 
+                MAX_SHADER_SIZE, vertexShader + 0);
+        fclose(file_in);
+        file_in = NULL;
+    }
+    else 
+    {
+        error_callback("STDIO::FILE::FOPEN_FAILED", strerror(errno));
+    }
+
+    // 2nd Vertex Shader
     file_in = fopen("../src/shaders/shader.vert", "r");
     if (file_in)
     {
-        build_vertex_shader(file_in, &vertexShaderSource, 
-                MAX_SHADER_SIZE, &vertexShader);
+        build_vertex_shader(file_in, &vertexShaderSource2, 
+                MAX_SHADER_SIZE, vertexShader + 1);
         fclose(file_in);
         file_in = NULL;
     }
@@ -118,7 +134,7 @@ int main()
     }
 
     // 1st Fragment Shader
-    file_in = fopen("../src/shaders/orange.frag", "r");
+    file_in = fopen("../src/shaders/vertexColor.frag", "r");
     if (file_in)
     {
         build_fragment_shader(file_in, &fragmentShaderSource1, 
@@ -145,14 +161,16 @@ int main()
     }
 
     /* Link shaders */
-    compile_shaders(&vertexShader, fragmentShader + 0, 
+    compile_shaders(vertexShader + 0, fragmentShader + 0, 
             shaderProgram + 0);
-    compile_shaders(&vertexShader, fragmentShader + 1, 
+    compile_shaders(vertexShader + 1, fragmentShader + 1, 
             shaderProgram + 1);
-    free(vertexShaderSource);
+    free(vertexShaderSource1);
+    free(vertexShaderSource2);
     free(fragmentShaderSource1);
     free(fragmentShaderSource2);
-    glad_glDeleteShader(vertexShader);
+    glad_glDeleteShader(vertexShader[0]);
+    glad_glDeleteShader(vertexShader[1]);
     glad_glDeleteShader(fragmentShader[0]);
     glad_glDeleteShader(fragmentShader[1]);
 
@@ -166,8 +184,11 @@ int main()
     glad_glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_one), 
             triangle_one, GL_STATIC_DRAW);
     glad_glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 
-            3 * sizeof(float), (void *) 0);
+            6 * sizeof(float), (void *) 0);
     glad_glEnableVertexAttribArray(0);
+    glad_glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 
+            6 * sizeof(float), (void *) (3 * sizeof(float)));
+    glad_glEnableVertexAttribArray(1);
     glad_glBindVertexArray(0);
 
     /* 2nd Triangle */
