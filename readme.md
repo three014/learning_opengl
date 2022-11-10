@@ -17,3 +17,4 @@ I'm building for Windows but developing on WSL (Ubuntu 20.04.5 LTS)
 4. In the main project folder run `cmake -S . -B build`
 5. `cd build`
 6. Run `cmake --build .`
+7. Start program with ./Windows.exe in command-line, or double-click Windows.exe in a file explorer.
