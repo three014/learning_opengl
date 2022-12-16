@@ -2,6 +2,7 @@
 #include "GLFW/glfw3.h"
 #include "lib.h"
 #include "shaders.h"
+#include "VBO.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,7 +12,7 @@
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 600
 
-float triangle_one[] =
+GLfloat triangle_one[] =
 {
     // positions            //colors
     -0.5f,  0.5f, 0.0f,     1.0f, 0.0f, 0.0f,
@@ -19,21 +20,21 @@ float triangle_one[] =
     -0.5f, -0.5f, 0.0f,     0.0f, 0.0f, 1.0f, 
 };
 
-float triangle_two[] = 
+GLfloat triangle_two[] = 
 {
      0.5f,  0.5f, 0.0f,
      0.5f, -0.5f, 0.0f,
     -0.5f, -0.5f, 0.0f,
 };
 
-float rectangle_thing[] =
+GLfloat rectangle_thing[] =
 {
      0.5f,  0.5f, 0.0f, // top right
      0.5f, -0.5f, 0.0f, // bottom right
     -0.5f, -0.5f, 0.0f, // bottom left
     -0.5f,  0.5f, 0.0f, // top left
 };
-unsigned int rectangle_indices[] =
+GLuint rectangle_indices[] =
 {
     0, 1, 3, // first triangle
     1, 2, 3  // second triangle
@@ -44,7 +45,9 @@ int main()
 {
     int success;
     char infoLog[512];
-    unsigned int VBO[2], VAO[2];
+    GLuint VBO_items[2], VAO_items[2];
+    VBO *one = NULL;
+    
     FILE *file_in;
 
     Shader *hello = NULL;
@@ -64,12 +67,10 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
-    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT,
-            "Guwah", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Guwah", NULL, NULL);
     if (!window)
     {
-        error_callback("WINDOW::CREATE::FAILURE", 
-                "Failed to create window"); 
+        error_callback("WINDOW::CREATE::FAILURE", "Failed to create window"); 
         glfwTerminate();
         return -1;
     }
@@ -80,8 +81,7 @@ int main()
 
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
     {
-        error_callback("OPENGL::INIT::FAILURE", 
-                "Failed to initialize GLAD");
+        error_callback("OPENGL::INIT::FAILURE", "Failed to initialize GLAD");
         glfwDestroyWindow(window);
         glfwTerminate();
         return -1;
@@ -93,40 +93,39 @@ int main()
 
 
     /* Build and compile our shader program */
-    success = create_shader_prog("../resources/shaders/customshader.vert", 
-                                 "../resources/shaders/vertexColor.frag", 
-                                 &hello);
+    success = sh_prog_init("../resources/shaders/customshader.vert", 
+                             "../resources/shaders/vertexColor.frag", 
+                             &hello);
     if (!success)
     {
-        delete_shader_prog(hello);
-        delete_shader_prog(hi);
         glfwDestroyWindow(window);
+        sh_prog_del(&hello);
+        sh_prog_del(&hi);
         glfwTerminate();
         return 1;
     }
 
-    success = create_shader_prog("../resources/shaders/shader.vert", 
-                                 "../resources/shaders/uniform.frag", 
-                                 &hi);
-    if (!hi)
+    success = sh_prog_init("../resources/shaders/shader.vert", 
+                             "../resources/shaders/uniform.frag", 
+                             &hi);
+    if (!success)
     {
-        delete_shader_prog(hello);
-        delete_shader_prog(hi);
         glfwDestroyWindow(window);
+        sh_prog_del(&hello);
+        sh_prog_del(&hi);
         glfwTerminate();
         return 1;
     }
 
     info_callback("SHADERS::COMPILE::SUCCESS");
-    /* Free memory */
 
     /* Set up vertex data (and buffer(s)) and configure vertex attributes */
-    glGenVertexArrays(2, VAO);
-    glGenBuffers(2, VBO);
+    glGenVertexArrays(2, VAO_items);
+    glGenBuffers(2, VBO_items);
 
     /* 1st Triangle */
-    glBindVertexArray(VAO[0]);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+    glBindVertexArray(VAO_items[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO_items[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_one), triangle_one, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(0);
@@ -135,12 +134,10 @@ int main()
     glBindVertexArray(0);
 
     /* 2nd Triangle */
-    glBindVertexArray(VAO[1]);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_two),
-            triangle_two, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, 
-            GL_FALSE, 0, (void *) 0);
+    glBindVertexArray(VAO_items[1]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO_items[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_two), triangle_two, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *) 0);
     glEnableVertexAttribArray(0);
     glBindVertexArray(0);
 
@@ -164,7 +161,7 @@ int main()
         
         /* Draw 1st Triangle */
         glUseProgram(hello->ID);
-        glBindVertexArray(VAO[0]);
+        glBindVertexArray(VAO_items[0]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         
         /* Draw 2nd Triangle */
@@ -178,7 +175,7 @@ int main()
         glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
         
         /* Render the triangle */
-        glBindVertexArray(VAO[1]);
+        glBindVertexArray(VAO_items[1]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
 
@@ -190,12 +187,10 @@ int main()
         glfwPollEvents();
     }
 
-    glDeleteVertexArrays(2, VAO);
-    glDeleteBuffers(2, VBO);
-    glDeleteProgram(hello->ID);
-    glDeleteProgram(hi->ID);
-    delete_shader_prog(hello);
-    delete_shader_prog(hi);
+    glDeleteVertexArrays(2, VAO_items);
+    glDeleteBuffers(2, VBO_items);
+    sh_prog_del(&hello);
+    sh_prog_del(&hi);
 
     glfwDestroyWindow(window);
     glfwTerminate(); // Currently gives a SegFault on Linux,

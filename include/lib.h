@@ -1,5 +1,5 @@
-#ifndef LIB_H
-#define LIB_H
+#ifndef __LIB_H
+#define __LIB_H
 
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
