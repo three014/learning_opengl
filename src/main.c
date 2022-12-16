@@ -4,7 +4,6 @@
 #include "shaders.h"
 
 #include <errno.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -41,11 +40,6 @@ unsigned int rectangle_indices[] =
     1, 2, 3  // second triangle
 };
 
-
-//char *vertexShaderSource1;
-//char *vertexShaderSource2;
-//char *fragmentShaderSource1;
-//char *fragmentShaderSource2;
 
 int main()
 {
