@@ -11,30 +11,27 @@
 #define BUFFER_SIZE 256
 #define NULL_CHAR '\0'
 
-typedef struct __VERTEX_SHADER 
-{
-    unsigned int id;
-    char file_loc[BUFFER_SIZE];
-    char *src_code;
-} vertex_shader;
+#define VERT 0 
+#define FRAG 1
+#define NUM_SMALL_SHADERS 2
 
-typedef struct __FRAGMENT_SHADER
+typedef struct __VERTEX_OR_FRAGMENT_SHADER
 {
-    unsigned int id;
-    char file_loc[BUFFER_SIZE];
+    GLuint ID;
+    GLenum type;
     char *src_code;
-} fragment_shader;
+} small_shader;
 
 typedef struct __VERTEX_FRAGMENT_SHADER_PROGRAM
 {
-    unsigned int program;
-    vertex_shader vert;
-    fragment_shader frag;
-} basic_shader;
+    GLuint ID;
+    small_shader shaders[NUM_SMALL_SHADERS];
+} Shader;
 
-int parse_shader(FILE *, char **);
-void build_vertex_shader(vertex_shader *);
-void build_fragment_shader(fragment_shader *);
-int compile_shaders(unsigned int *, unsigned int *, unsigned int *);
+char *parse_file(const char *src);
+int compile_shader(Shader *program, int type);
+int compile_program(Shader **program);
+int create_shader_prog(const char *vertex_file, const char *fragment_file, Shader **out);
+void delete_shader_prog(Shader *del);
 
 #endif

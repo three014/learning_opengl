@@ -3,14 +3,13 @@
 #include "lib.h"
 #include "shaders.h"
 
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
 
-#define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 480
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 600
 
 float triangle_one[] =
 {
@@ -48,24 +47,10 @@ int main()
     unsigned int VBO[2], VAO[2];
     FILE *file_in;
 
-    /* TEST */
-    basic_shader hello;
-    hello.vert.src_code = NULL;
-    hello.frag.src_code = NULL;
-    strncpy(hello.frag.file_loc, "../src/shaders/vertexColor.frag", BUFFER_SIZE);
-    strncpy(hello.vert.file_loc, "../src/shaders/customshader.vert", BUFFER_SIZE);
+    Shader *hello = NULL;
+    Shader *hi = NULL;
 
-    basic_shader hi;
-    hi.vert.src_code = NULL;
-    hi.frag.src_code = NULL;
-    strncpy(hi.frag.file_loc, "../src/shaders/uniform.frag", BUFFER_SIZE);
-    strncpy(hi.vert.file_loc, "../src/shaders/shader.vert", BUFFER_SIZE);
-
-
-    //glfwSetErrorCallback(error_callback);
-    //if (glfwPlatformSupported(GLFW_PLATFORM_WIN32))
-    //    glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WIN32);
-
+    
     /* Initialize the library */
     if (!glfwInit())
     {
@@ -74,8 +59,8 @@ int main()
     }
     info_callback("GLFW::INIT::SUCCESS");
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
@@ -108,56 +93,57 @@ int main()
 
 
     /* Build and compile our shader program */
-    
-    // 1st Vertex Shader
-    build_vertex_shader(&hello.vert);
+    success = create_shader_prog("../resources/shaders/customshader.vert", 
+                                 "../resources/shaders/vertexColor.frag", 
+                                 &hello);
+    if (!success)
+    {
+        delete_shader_prog(hello);
+        delete_shader_prog(hi);
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        return 1;
+    }
 
-    // 2nd Vertex Shader
-    build_vertex_shader(&hi.vert);
-
-    // 1st Fragment Shader
-    build_fragment_shader(&hello.frag);
-
-    // 2nd Fragment Shader
-    build_fragment_shader(&hi.frag);
-
-    /* Link shaders */
-    compile_shaders(&hello.vert.id, &hello.frag.id, &hello.program);
-    compile_shaders(&hi.vert.id, &hi.frag.id, &hi.program);
+    success = create_shader_prog("../resources/shaders/shader.vert", 
+                                 "../resources/shaders/uniform.frag", 
+                                 &hi);
+    if (!hi)
+    {
+        delete_shader_prog(hello);
+        delete_shader_prog(hi);
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        return 1;
+    }
 
     info_callback("SHADERS::COMPILE::SUCCESS");
     /* Free memory */
-    glad_glDeleteShader(hello.vert.id);
-    glad_glDeleteShader(hi.vert.id);
-    glad_glDeleteShader(hello.frag.id);
-    glad_glDeleteShader(hi.frag.id);
 
     /* Set up vertex data (and buffer(s)) and configure vertex attributes */
-    glad_glGenVertexArrays(2, VAO);
-    glad_glGenBuffers(2, VBO);
+    glGenVertexArrays(2, VAO);
+    glGenBuffers(2, VBO);
 
     /* 1st Triangle */
-    glad_glBindVertexArray(VAO[0]);
-    glad_glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-    glad_glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_one), 
-            triangle_one, GL_STATIC_DRAW);
-    glad_glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 
-            6 * sizeof(float), (void *) 0);
-    glad_glEnableVertexAttribArray(0);
-    glad_glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 
-            6 * sizeof(float), (void *) (3 * sizeof(float)));
-    glad_glEnableVertexAttribArray(1);
-    glad_glBindVertexArray(0);
+    glBindVertexArray(VAO[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_one), triangle_one, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) 0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) (3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    glBindVertexArray(0);
 
     /* 2nd Triangle */
-    glad_glBindVertexArray(VAO[1]);
-    glad_glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
-    glad_glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_two),
+    glBindVertexArray(VAO[1]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_two),
             triangle_two, GL_STATIC_DRAW);
-    glad_glVertexAttribPointer(0, 3, GL_FLOAT, 
+    glVertexAttribPointer(0, 3, GL_FLOAT, 
             GL_FALSE, 0, (void *) 0);
-    glad_glEnableVertexAttribArray(0);
-    glad_glBindVertexArray(0);
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
+
 
     /* --------------------------------------------------------------------- */
 
@@ -177,25 +163,23 @@ int main()
         /* RECTANGLE */
         
         /* Draw 1st Triangle */
-        glad_glUseProgram(hello.program);
-        glad_glBindVertexArray(VAO[0]);
-        glad_glDrawArrays(GL_TRIANGLES, 0, 3);
+        glUseProgram(hello->ID);
+        glBindVertexArray(VAO[0]);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
         
         /* Draw 2nd Triangle */
         /* Activate 2nd shader */
-        glad_glUseProgram(hi.program);
+        glUseProgram(hi->ID);
         
         /* Update the uniform color */
         float timeValue = glfwGetTime();
         float greenValue = sin(timeValue) / 2.0f + 0.5f;
-        int vertexColorLocation = 
-                glad_glGetUniformLocation(hi.program, "ourColor");
-        glad_glUniform4f(vertexColorLocation, 0.0f, 
-                greenValue, 0.0f, 1.0f);
+        int vertexColorLocation = glGetUniformLocation(hi->ID, "ourColor");
+        glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
         
         /* Render the triangle */
-        glad_glBindVertexArray(VAO[1]);
-        glad_glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(VAO[1]);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
 
         /* Swap front and back buffers */
@@ -206,10 +190,12 @@ int main()
         glfwPollEvents();
     }
 
-    glad_glDeleteVertexArrays(2, VAO);
-    glad_glDeleteBuffers(2, VBO);
-    glad_glDeleteProgram(hello.program);
-    glad_glDeleteProgram(hi.program);
+    glDeleteVertexArrays(2, VAO);
+    glDeleteBuffers(2, VBO);
+    glDeleteProgram(hello->ID);
+    glDeleteProgram(hi->ID);
+    delete_shader_prog(hello);
+    delete_shader_prog(hi);
 
     glfwDestroyWindow(window);
     glfwTerminate(); // Currently gives a SegFault on Linux,
