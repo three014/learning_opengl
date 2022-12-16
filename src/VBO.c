@@ -2,23 +2,28 @@
 #include "lib.h"
 
 #include <stdlib.h>
+#include <string.h>
 
-int vbo_init(GLfloat *vertices, GLsizeiptr size, VBO **out)
+typedef struct __VBO_STRUCT
 {
-    if (*out != NULL)
+    GLuint ID;
+} VBO;
+
+
+VBO *vbo_init(GLfloat *vertices, GLsizeiptr size)
+{
+    VBO *vbo = malloc(sizeof *vbo);
+    if (vbo == NULL)
     {
-        error_callback("VBO::INIT::FAILURE", 
-                "VBO Pointer was not NULL, might have data attached to it.");
+        error_callback("VBO::INIT::ALLOCATION_FAILED", strerror(errno));
         return 0;
     }
 
-    *out = malloc(sizeof **out);
-
-    glGenBuffers(1, &((*out)->ID));
-    glBindBuffer(GL_ARRAY_BUFFER, (*out)->ID);
+    glGenBuffers(1, &(vbo->ID));
+    glBindBuffer(GL_ARRAY_BUFFER, vbo->ID);
     glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
-    
-    return 1;
+
+    return vbo;
 }
 
 void vbo_bind(VBO *self)
@@ -37,6 +42,8 @@ void vbo_del(VBO **del)
     {
         return;
     }
+
+    glDeleteBuffers(1, &((*del)->ID));
 
     free(*del);
     *del = NULL;

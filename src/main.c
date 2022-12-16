@@ -3,6 +3,8 @@
 #include "lib.h"
 #include "shaders.h"
 #include "VBO.h"
+#include "VAO.h"
+#include "EBO.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +13,7 @@
 
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 600
+#define SQRT3 1.7320508075688772f
 
 GLfloat triangle_one[] =
 {
@@ -41,17 +44,24 @@ GLuint rectangle_indices[] =
 };
 
 
+GLfloat three_triangles_color[] =
+{ //            COORDINATES                 /         COLORS        //
+    -0.5f,  -0.5f * (SQRT3) / 3,     0.0f,      0.8f, 0.3f,  0.02f, // Lower left corner
+     0.5f,  -0.5f * (SQRT3) / 3,     0.0f,      0.8f, 0.3f,  0.02f, // Lower right corner
+     0.0f,   0.5f * (SQRT3) * 2 / 3, 0.0f,      1.0f, 0.6f,  0.32f, // Upper corner
+    -0.25f,  0.5f * (SQRT3) / 6,     0.0f,      0.9f, 0.45f, 0.17f, // Inner left
+     0.25f,  0.5f * (SQRT3) / 6,     0.0f,      0.9f, 0.45f, 0.17f, // Inner right
+     0.0f,  -0.5f * (SQRT3) / 3,     0.0f,      0.8f, 0.3f,  0.02f, // Inner down
+};
+
+
 int main()
 {
     int success;
-    char infoLog[512];
-    GLuint VBO_items[2], VAO_items[2];
-    VBO *one = NULL;
-    
+    char infoLog[512]; 
     FILE *file_in;
 
-    Shader *hello = NULL;
-    Shader *hi = NULL;
+    
 
     
     /* Initialize the library */
@@ -67,7 +77,8 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
-    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Guwah", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, 
+            "Guwah", NULL, NULL);
     if (!window)
     {
         error_callback("WINDOW::CREATE::FAILURE", "Failed to create window"); 
@@ -91,56 +102,35 @@ int main()
 
     /* --------------------------------------------------------------------- */
 
-
-    /* Build and compile our shader program */
-    success = sh_prog_init("../resources/shaders/customshader.vert", 
-                             "../resources/shaders/vertexColor.frag", 
-                             &hello);
-    if (!success)
+    
+    // Creates Shader object using shaders shader.vert and uniform.frag
+    Shader *hello = NULL;
+    if (!sh_prog_init("../resources/shaders/shader.vert",
+                      "../resources/shaders/shader.frag",
+                      &hello))
     {
         glfwDestroyWindow(window);
         sh_prog_del(&hello);
-        sh_prog_del(&hi);
-        glfwTerminate();
-        return 1;
-    }
-
-    success = sh_prog_init("../resources/shaders/shader.vert", 
-                             "../resources/shaders/uniform.frag", 
-                             &hi);
-    if (!success)
-    {
-        glfwDestroyWindow(window);
-        sh_prog_del(&hello);
-        sh_prog_del(&hi);
         glfwTerminate();
         return 1;
     }
 
     info_callback("SHADERS::COMPILE::SUCCESS");
 
-    /* Set up vertex data (and buffer(s)) and configure vertex attributes */
-    glGenVertexArrays(2, VAO_items);
-    glGenBuffers(2, VBO_items);
+    // Generates Vertex Array Object and binds it
+    VAO *vao1 = vao_init();
+    vao_bind(vao1);
 
-    /* 1st Triangle */
-    glBindVertexArray(VAO_items[0]);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO_items[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_one), triangle_one, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) 0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) (3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    glBindVertexArray(0);
+    // Generates Vertex Buffer Object and links it to vertices
+    VBO *vbo1 = vbo_init(rectangle_thing, sizeof rectangle_thing);
 
-    /* 2nd Triangle */
-    glBindVertexArray(VAO_items[1]);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO_items[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_two), triangle_two, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *) 0);
-    glEnableVertexAttribArray(0);
-    glBindVertexArray(0);
+    // Generates Element Buffer Object and links it to indices
+    EBO *ebo1 = ebo_init(rectangle_indices, sizeof rectangle_indices);
+    
+    // Links VBO to VAO
+    vao_linkattrib(vao1, vbo1, 0, 3, GL_FLOAT, 3 * sizeof(float), 0);
 
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     /* --------------------------------------------------------------------- */
 
@@ -158,26 +148,8 @@ int main()
 
 
         /* RECTANGLE */
+        sh_activate(hello);
         
-        /* Draw 1st Triangle */
-        glUseProgram(hello->ID);
-        glBindVertexArray(VAO_items[0]);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        
-        /* Draw 2nd Triangle */
-        /* Activate 2nd shader */
-        glUseProgram(hi->ID);
-        
-        /* Update the uniform color */
-        float timeValue = glfwGetTime();
-        float greenValue = sin(timeValue) / 2.0f + 0.5f;
-        int vertexColorLocation = glGetUniformLocation(hi->ID, "ourColor");
-        glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-        
-        /* Render the triangle */
-        glBindVertexArray(VAO_items[1]);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -187,10 +159,10 @@ int main()
         glfwPollEvents();
     }
 
-    glDeleteVertexArrays(2, VAO_items);
-    glDeleteBuffers(2, VBO_items);
+    vao_del(&vao1);
+    vbo_del(&vbo1);
+    ebo_del(&ebo1);
     sh_prog_del(&hello);
-    sh_prog_del(&hi);
 
     glfwDestroyWindow(window);
     glfwTerminate(); // Currently gives a SegFault on Linux,

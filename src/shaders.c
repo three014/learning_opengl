@@ -9,14 +9,17 @@
 #define BUFFER_SIZE 256
 #define NULL_CHAR '\0'
 
-#define NUM_SMALL_SHADERS 2
-
 typedef struct __VERTEX_OR_FRAGMENT_SHADER
 {
     GLuint ID;
     GLenum type;
     char *src_code;
 } small_shader;
+
+typedef struct __VERTEX_FRAGMENT_SHADER_PROGRAM
+{
+    GLuint ID;
+} Shader;
 
 
 char *sh_parse_file(const char *src);
@@ -250,3 +253,18 @@ void sh_prog_del(Shader **del)
     free(*del);
     *del = NULL;
 }
+
+void sh_activate(Shader *shader_program)
+{
+    glUseProgram(shader_program->ID);
+}
+
+GLint sh_get_uniloc(Shader *shader_program, const char *var_name)
+{
+    if (shader_program == NULL)
+    {
+        return 0;
+    }
+    return glGetUniformLocation(shader_program->ID, var_name);
+}
+

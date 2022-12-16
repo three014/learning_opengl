@@ -17,6 +17,12 @@ project(Graphics VERSION 0.0.2)
 set(SOURCES 
     ${PROJECT_SOURCE_DIR}/src/main.c 
     ${PROJECT_SOURCE_DIR}/src/glad.c
+    ${PROJECT_SOURCE_DIR}/src/VBO.c
+    ${PROJECT_SOURCE_DIR}/src/VAO.c
+    ${PROJECT_SOURCE_DIR}/src/EBO.c
+    ${PROJECT_SOURCE_DIR}/include/VBO.h
+    ${PROJECT_SOURCE_DIR}/include/VAO.h
+    ${PROJECT_SOURCE_DIR}/include/EBO.h
     ${PROJECT_SOURCE_DIR}/src/lib.c
     ${PROJECT_SOURCE_DIR}/src/shaders.c
     ${PROJECT_SOURCE_DIR}/include/glad/glad.h
