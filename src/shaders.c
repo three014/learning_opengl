@@ -148,12 +148,7 @@ int create_shader_prog(const char *vertex_file, const char *fragment_file, Shade
     new_program->shaders[VERT].type = GL_VERTEX_SHADER;
     if (!compile_shader(new_program, VERT))
     {
-        if (new_program->shaders[VERT].src_code != NULL)
-        {
-            free(new_program->shaders[VERT].src_code);
-            new_program->shaders[VERT].src_code = NULL;
-        }
-        free(new_program);
+        delete_shader_prog(new_program);
         free(fragment_code);
         return 0;
     }
@@ -162,32 +157,14 @@ int create_shader_prog(const char *vertex_file, const char *fragment_file, Shade
     new_program->shaders[FRAG].type = GL_FRAGMENT_SHADER;
     if (!compile_shader(new_program, FRAG))
     {
-        if (new_program->shaders[VERT].src_code != NULL)
-        {
-            free(new_program->shaders[VERT].src_code);
-            new_program->shaders[VERT].src_code = NULL;
-        }
-        if (new_program->shaders[FRAG].src_code != NULL)
-        {
-            free(new_program->shaders[FRAG].src_code);
-            new_program->shaders[FRAG].src_code = NULL;
-        }
-        free(new_program);
+        delete_shader_prog(new_program);
+        return 0;
     }
 
     if (!compile_program(&new_program))
     {
-        if (new_program->shaders[VERT].src_code != NULL)
-        {
-            free(new_program->shaders[VERT].src_code);
-            new_program->shaders[VERT].src_code = NULL;
-        }
-        if (new_program->shaders[FRAG].src_code != NULL)
-        {
-            free(new_program->shaders[FRAG].src_code);
-            new_program->shaders[FRAG].src_code = NULL;
-        }
-        free(new_program);
+        delete_shader_prog(new_program);
+        return 0;
     }
 
     *shader_out = new_program;
