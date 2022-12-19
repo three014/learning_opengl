@@ -37,11 +37,9 @@ target_include_directories(Graphics PRIVATE
     src/
     include/
 )
-#add_library(GLFW SHARED IMPORTED)
-#target_link_directories(GLFW PUBLIC 
-#    "${PROJECT_SOURCE_DIR}/glfw-3.3.8.bin.WIN64/lib-mingw-w64"
-#    )
+
 target_link_libraries(Graphics 
+    "${PROJECT_SOURCE_DIR}/libraries/stb.a"
     "${PROJECT_SOURCE_DIR}/glfw-3.3.8.bin.WIN64/lib-mingw-w64/libglfw3.a"
     "${PROJECT_SOURCE_DIR}/glfw-3.3.8.bin.WIN64/lib-mingw-w64/glfw3.dll"
     )

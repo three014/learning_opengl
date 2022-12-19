@@ -5,6 +5,7 @@
 #include "VBO.h"
 #include "VAO.h"
 #include "EBO.h"
+#include "stb/stb_image.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,7 +13,7 @@
 #include <string.h>
 
 #define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 600
+#define SCREEN_HEIGHT 800
 #define SQRT3 1.7320508075688772f
 
 GLfloat triangle_one[] =
@@ -37,6 +38,7 @@ GLfloat rectangle_thing[] =
     -0.5f, -0.5f, 0.0f, // bottom left
     -0.5f,  0.5f, 0.0f, // top left
 };
+
 GLuint rectangle_indices[] =
 {
     0, 1, 3, // first triangle
@@ -46,12 +48,19 @@ GLuint rectangle_indices[] =
 
 GLfloat three_triangles_color[] =
 { //            COORDINATES                 /         COLORS        //
-    -0.5f,  -0.5f * (SQRT3) / 3,     0.0f,      0.8f, 0.3f,  0.02f, // Lower left corner
+    -0.5f,  -0.5f * (SQRT3) / 3,     0.0f,      0.8f, 0.3f,  0.02f, // Lower left corner 
      0.5f,  -0.5f * (SQRT3) / 3,     0.0f,      0.8f, 0.3f,  0.02f, // Lower right corner
-     0.0f,   0.5f * (SQRT3) * 2 / 3, 0.0f,      1.0f, 0.6f,  0.32f, // Upper corner
-    -0.25f,  0.5f * (SQRT3) / 6,     0.0f,      0.9f, 0.45f, 0.17f, // Inner left
-     0.25f,  0.5f * (SQRT3) / 6,     0.0f,      0.9f, 0.45f, 0.17f, // Inner right
-     0.0f,  -0.5f * (SQRT3) / 3,     0.0f,      0.8f, 0.3f,  0.02f, // Inner down
+     0.0f,   0.5f * (SQRT3) * 2 / 3, 0.0f,      1.0f, 0.6f,  0.32f, // Upper corner      
+    -0.25f,  0.5f * (SQRT3) / 6,     0.0f,      0.9f, 0.45f, 0.17f, // Inner left        
+     0.25f,  0.5f * (SQRT3) / 6,     0.0f,      0.9f, 0.45f, 0.17f, // Inner right       
+     0.0f,  -0.5f * (SQRT3) / 3,     0.0f,      0.8f, 0.3f,  0.02f, // Inner down        
+};
+
+GLuint three_triangles_indices[] = 
+{
+    0, 3, 5, // Lower left triangle 
+    3, 2, 4, // Lower right triangle
+    5, 4, 1, // Upper triangle      
 };
 
 
@@ -60,9 +69,6 @@ int main()
     int success;
     char infoLog[512]; 
     FILE *file_in;
-
-    
-
     
     /* Initialize the library */
     if (!glfwInit())
@@ -77,8 +83,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
-    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, 
-            "Guwah", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Guwah", NULL, NULL);
     if (!window)
     {
         error_callback("WINDOW::CREATE::FAILURE", "Failed to create window"); 
@@ -122,13 +127,17 @@ int main()
     vao_bind(vao1);
 
     // Generates Vertex Buffer Object and links it to vertices
-    VBO *vbo1 = vbo_init(rectangle_thing, sizeof rectangle_thing);
+    VBO *vbo1 = vbo_init(three_triangles_color, sizeof three_triangles_color);
 
     // Generates Element Buffer Object and links it to indices
-    EBO *ebo1 = ebo_init(rectangle_indices, sizeof rectangle_indices);
+    EBO *ebo1 = ebo_init(three_triangles_indices, sizeof three_triangles_indices);
     
     // Links VBO to VAO
-    vao_linkattrib(vao1, vbo1, 0, 3, GL_FLOAT, 3 * sizeof(float), 0);
+    vao_linkattrib(vao1, vbo1, 0, 3, GL_FLOAT, 6 * sizeof(float), (void *) 0);
+    vao_linkattrib(vao1, vbo1, 1, 3, GL_FLOAT, 6 * sizeof(float), (void *) (3 * sizeof(float)));
+
+
+    GLuint uni_ID = sh_get_uniloc(hello, "scale");
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -147,8 +156,11 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
 
-        /* RECTANGLE */
+        /* DRAW */
         sh_activate(hello);
+        glUniform1f(uni_ID, 0.5f);
+        vao_bind(vao1);
+        glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
         
 
         /* Swap front and back buffers */
