@@ -5,6 +5,7 @@
 #include "GLFW/glfw3.h"
 
 #include <stdio.h>
+#include <errno.h>
 
 #define INFO_LOG_SIZE 512
 
