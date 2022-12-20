@@ -15,8 +15,8 @@ VAO *vao_init()
     VAO *vao = malloc(sizeof *vao);
     if (vao == NULL)
     {
-        error_callback("VBO::INIT::ALLOCATION_FAILED", strerror(errno));
-        return 0;
+        error_callback("VAO::INIT::ALLOCATION_FAILED", strerror(errno));
+        return NULL;
     }
 
     glGenVertexArrays(1, &(vao->ID));

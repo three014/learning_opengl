@@ -5,6 +5,7 @@
 #include "VBO.h"
 #include "VAO.h"
 #include "EBO.h"
+#include "texture.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
@@ -154,31 +155,19 @@ int main()
     GLuint uni_ID = sh_get_uniloc(hello, "scale");
 
     // Textures
-    int img_width, img_height, num_col_ch;
-    stbi_set_flip_vertically_on_load(GL_TRUE);
-    unsigned char *bytes = stbi_load("../resources/textures/pop_cat.png", &img_width, &img_height, &num_col_ch, 0);
-
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_width, img_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bytes);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    stbi_image_free(bytes);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    GLuint tex0_uni = sh_get_uniloc(hello, "tex0");
-    sh_activate(hello);
-    glUniform1i(tex0_uni, 0);
-
+    Texture *pop_cat = tex_init("../resources/textures/pop_cat.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
+    if (!pop_cat)
+    {
+        glfwDestroyWindow(window);
+        sh_prog_del(&hello);
+        vao_del(&vao1);
+        vbo_del(&vbo1);
+        ebo_del(&ebo1);
+        glfwTerminate();
+        return 1;
+    }
+    
+    tex_unit(hello, "tex0", 0);
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -201,7 +190,7 @@ int main()
         sh_activate(hello);
 
         glUniform1f(uni_ID, 0.5f);
-        glBindTexture(GL_TEXTURE_2D, texture);
+        tex_bind(pop_cat);
 
         vao_bind(vao1);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -219,8 +208,8 @@ int main()
     vbo_del(&vbo1);
     ebo_del(&ebo1);
     sh_prog_del(&hello);
+    tex_del(&pop_cat);
 
-    glDeleteTextures(1, &texture);
 
     glfwDestroyWindow(window);
     glfwTerminate(); // Currently gives a SegFault on Linux,
