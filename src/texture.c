@@ -19,7 +19,7 @@ Texture *tex_init(const char *image, GLenum tex_type, GLenum slot, GLenum format
     Texture *tex = malloc(sizeof *tex);
     if (tex == NULL)
     {
-        error_callback("VAO::INIT::ALLOCATION_FAILED", strerror(errno));
+        error_callback("TEXTURE::INIT::ALLOCATION_FAILED", strerror(errno));
         return NULL;
     }
 
@@ -30,6 +30,7 @@ Texture *tex_init(const char *image, GLenum tex_type, GLenum slot, GLenum format
     unsigned char *bytes = stbi_load(image, &img_width, &img_height, &num_col_ch, 0);
     if (bytes == NULL)
     {
+        error_callback("TEXTURE::IMAGE::LOAD_FAILED", "Unable to load the texture data; File may not exist.");
         free(tex);
         return NULL;
     }
