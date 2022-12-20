@@ -5,11 +5,11 @@
 #include "VBO.h"
 #include "VAO.h"
 #include "EBO.h"
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <string.h>
 
 #define SCREEN_WIDTH 800
@@ -21,7 +21,7 @@ GLfloat triangle_one[] =
     // positions            //colors
     -0.5f,  0.5f, 0.0f,     1.0f, 0.0f, 0.0f,
      0.5f,  0.5f, 0.0f,     0.0f, 1.0f, 0.0f,
-    -0.5f, -0.5f, 0.0f,     0.0f, 0.0f, 1.0f, 
+    -0.5f, -0.5f, 0.0f,     0.0f, 0.0f, 1.0f,
 };
 
 GLfloat triangle_two[] = 
@@ -63,12 +63,25 @@ GLuint three_triangles_indices[] =
     5, 4, 1, // Upper triangle      
 };
 
+GLfloat square[] = 
+{
+    -0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
+    -0.5f,  0.5f, 0.0f,     0.0f, 1.0f, 0.0f,   0.0f, 1.0f,
+     0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,   1.0f, 1.0f,
+     0.5f, -0.5f, 0.0f,     1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+};
+
+GLuint square_indices[] = 
+{
+    0, 2, 1, 
+    0, 3, 2, 
+};
+
 
 int main()
 {
     int success;
     char infoLog[512]; 
-    FILE *file_in;
     
     /* Initialize the library */
     if (!glfwInit())
@@ -127,17 +140,45 @@ int main()
     vao_bind(vao1);
 
     // Generates Vertex Buffer Object and links it to vertices
-    VBO *vbo1 = vbo_init(three_triangles_color, sizeof three_triangles_color);
+    VBO *vbo1 = vbo_init(square, sizeof square);
 
     // Generates Element Buffer Object and links it to indices
-    EBO *ebo1 = ebo_init(three_triangles_indices, sizeof three_triangles_indices);
+    EBO *ebo1 = ebo_init(square_indices, sizeof square_indices);
     
     // Links VBO to VAO
-    vao_linkattrib(vao1, vbo1, 0, 3, GL_FLOAT, 6 * sizeof(float), (void *) 0);
-    vao_linkattrib(vao1, vbo1, 1, 3, GL_FLOAT, 6 * sizeof(float), (void *) (3 * sizeof(float)));
+    vao_linkattrib(vao1, vbo1, 0, 3, GL_FLOAT, 8 * sizeof(float), (void *) 0);
+    vao_linkattrib(vao1, vbo1, 1, 3, GL_FLOAT, 8 * sizeof(float), (void *) (3 * sizeof(float)));
+    vao_linkattrib(vao1, vbo1, 2, 2, GL_FLOAT, 8 * sizeof(float), (void *) (6 * sizeof(float)));
 
 
     GLuint uni_ID = sh_get_uniloc(hello, "scale");
+
+    // Textures
+    int img_width, img_height, num_col_ch;
+    stbi_set_flip_vertically_on_load(GL_TRUE);
+    unsigned char *bytes = stbi_load("../resources/textures/pop_cat.png", &img_width, &img_height, &num_col_ch, 0);
+
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_width, img_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bytes);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    stbi_image_free(bytes);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    GLuint tex0_uni = sh_get_uniloc(hello, "tex0");
+    sh_activate(hello);
+    glUniform1i(tex0_uni, 0);
+
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -158,9 +199,12 @@ int main()
 
         /* DRAW */
         sh_activate(hello);
+
         glUniform1f(uni_ID, 0.5f);
+        glBindTexture(GL_TEXTURE_2D, texture);
+
         vao_bind(vao1);
-        glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         
 
         /* Swap front and back buffers */
@@ -175,6 +219,8 @@ int main()
     vbo_del(&vbo1);
     ebo_del(&ebo1);
     sh_prog_del(&hello);
+
+    glDeleteTextures(1, &texture);
 
     glfwDestroyWindow(window);
     glfwTerminate(); // Currently gives a SegFault on Linux,
