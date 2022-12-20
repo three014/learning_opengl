@@ -28,6 +28,7 @@ set(SOURCES
     ${PROJECT_SOURCE_DIR}/include/VBO.h
     ${PROJECT_SOURCE_DIR}/include/VAO.h
     ${PROJECT_SOURCE_DIR}/include/EBO.h
+    ${PROJECT_SOURCE_DIR}/src/stb.c
     ${PROJECT_SOURCE_DIR}/src/lib.c
     ${PROJECT_SOURCE_DIR}/src/shaders.c
     ${PROJECT_SOURCE_DIR}/include/glad/glad.h
