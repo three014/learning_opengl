@@ -156,6 +156,11 @@ int sh_prog_compile(Shader **program, small_shader **vert, small_shader **frag)
     return OK;
 }
 
+/// @brief Creates and generates a shader program from the specified vertex and fragment files.
+/// @param vertex_file The relative or absolute path to vertex file.
+/// @param fragment_file The relative or absolute path to fragment file.
+/// @param out The outgoing shader program.
+/// @return Either 1 for "OK" or 0 for "BAD"
 int sh_prog_init(const char *vertex_file, const char *fragment_file, Shader **out)
 {
     int err = OK;

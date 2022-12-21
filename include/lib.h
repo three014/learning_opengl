@@ -13,7 +13,7 @@
 
 void processInput(GLFWwindow *);
 void framebuffer_size_callback(GLFWwindow *, int, int);
-int error_callback(char *, char *);
-int info_callback(char *);
+int error_callback(char *err, char *err_str);
+int info_callback(char *info);
 
 #endif
