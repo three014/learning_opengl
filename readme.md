@@ -2,6 +2,8 @@
 
 I'm building for Windows but developing on WSL (Ubuntu 20.04.5 LTS)
 
+While I am doing this project to learn how to create graphical programs using OpenGL, this is also for me to develop clean and understandable C code. 
+
 ## Dependencies for this project:
 - glfw 3.3.8 for Windows (64-bit pre-compiled binaries)
 - MinGW-w64 - gcc and g++
