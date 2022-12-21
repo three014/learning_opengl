@@ -23,8 +23,8 @@ typedef struct __VERTEX_FRAGMENT_SHADER_PROGRAM
 
 
 char *sh_parse_file(const char *src);
-int sh_shader_compile(small_shader **shader);
-int sh_prog_compile(Shader **program, small_shader **vert, small_shader **frag);
+unsigned int sh_shader_compile(small_shader **shader);
+unsigned int sh_prog_compile(Shader **program, small_shader **vert, small_shader **frag);
 void sh_shader_del(small_shader **del);
 
 char *sh_parse_file_helper(FILE *in)
@@ -102,7 +102,7 @@ char *sh_parse_file(const char *src)
     return shader;
 }
 
-int sh_shader_compile(small_shader **shader)
+unsigned int sh_shader_compile(small_shader **shader)
 {
     if (*shader == NULL)
     {
@@ -132,7 +132,7 @@ int sh_shader_compile(small_shader **shader)
     return OK;
 }
 
-int sh_prog_compile(Shader **program, small_shader **vert, small_shader **frag)
+unsigned int sh_prog_compile(Shader **program, small_shader **vert, small_shader **frag)
 {
     int success;
     char info_log[INFO_LOG_SIZE];
@@ -161,7 +161,7 @@ int sh_prog_compile(Shader **program, small_shader **vert, small_shader **frag)
 /// @param fragment_file The relative or absolute path to fragment file.
 /// @param out The outgoing shader program.
 /// @return Either 1 for "OK" or 0 for "BAD"
-int sh_prog_init(const char *vertex_file, const char *fragment_file, Shader **out)
+unsigned int sh_prog_init(const char *vertex_file, const char *fragment_file, Shader **out)
 {
     int err = OK;
 
@@ -265,6 +265,8 @@ int sh_prog_init(const char *vertex_file, const char *fragment_file, Shader **ou
     return err;
 }
 
+/// @brief Deletes a vertex or fragment shader from OpenGL context and memory.
+/// @param del Reference to address of vertex or fragment shader.
 void sh_shader_del(small_shader **del)
 {
     if (*del == NULL)
@@ -283,6 +285,8 @@ void sh_shader_del(small_shader **del)
     *del = NULL;
 }
 
+/// @brief Deletes a shader program from OpenGL context and memory.
+/// @param del Reference to address of shader program.
 void sh_prog_del(Shader **del)
 {
     if (*del == NULL)
@@ -298,15 +302,42 @@ void sh_prog_del(Shader **del)
 
 void sh_activate(Shader *shader_program)
 {
+    if (shader_program == NULL)
+    {
+        return;
+    }
+    
     glUseProgram(shader_program->ID);
 }
 
-GLint sh_get_uniloc(Shader *shader_program, const char *var_name)
+/// @brief Searches for the location of a shader's uniform variable.
+/// @param shader_program 
+/// @param var_name 
+/// @param uniloc
+/// @return 
+unsigned int sh_get_uniloc(Shader *shader_program, const char *var_name, GLint *uniloc)
 {
-    if (shader_program == NULL)
+    unsigned int err = OK;
+    if (shader_program == NULL || var_name == NULL)
     {
-        return 0;
+        err = BAD;
     }
-    return glGetUniformLocation(shader_program->ID, var_name);
+
+    if (err == OK)
+    {
+        GLint uniform_location = glGetUniformLocation(shader_program->ID, var_name);
+        if (uniform_location == -1)
+        {
+            err = error_callback("SHADER::UNIFORM::NOT_FOUND", 
+                    "Could not find the specified uniform variable within "
+                    "the specified shader program.");
+        }
+        else
+        {
+            *uniloc = uniform_location;
+        }
+    }
+
+    return err;
 }
 

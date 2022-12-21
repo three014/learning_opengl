@@ -53,20 +53,37 @@ Texture *tex_init(const char *image, GLenum tex_type, GLenum slot, GLenum format
 
     return tex;
 }
-void tex_unit(Shader *shader, const char *uniform, GLuint unit)
+
+unsigned int tex_unit(Shader *shader, const char *uniform, GLuint unit)
 {
-    GLuint tex0_uni = sh_get_uniloc(shader, uniform);
-    sh_activate(shader);
-    glUniform1f(tex0_uni, unit);
+    GLuint tex0_uni = 0; 
+    unsigned int err = sh_get_uniloc(shader, uniform, &tex0_uni);
+    if (err == OK)
+    {
+        sh_activate(shader);
+        glUniform1f(tex0_uni, unit);
+    }
+
+    return err;
 }
 
 void tex_bind(Texture *texture)
 {
+    if (texture == NULL)
+    {
+        return;
+    }
+
     glBindTexture(texture->type, texture->ID);
 }
 
 void tex_unbind(Texture *texture)
 {
+    if (texture == NULL)
+    {
+        return;
+    }
+    
     glBindTexture(texture->type, 0);
 }
 

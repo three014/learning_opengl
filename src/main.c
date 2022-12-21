@@ -118,7 +118,7 @@ int main()
     /* --------------------------------------------------------------------- */
 
     
-    // Creates Shader object using shaders shader.vert and uniform.frag
+    // Creates Shader object using shaders shader.vert and shader.frag
     Shader *hello = NULL;
     if (!sh_prog_init("../resources/shaders/shader.vert",
                       "../resources/shaders/shader.frag",
@@ -148,7 +148,8 @@ int main()
     vao_linkattrib(vao1, vbo1, 2, 2, GL_FLOAT, 8 * sizeof(float), (void *) (6 * sizeof(float)));
 
 
-    GLuint uni_ID = sh_get_uniloc(hello, "scale");
+    GLuint scale = 0;
+    unsigned int set_scale = sh_get_uniloc(hello, "scale", &scale);
 
     // Textures
     Texture *pop_cat = tex_init("../resources/textures/pop_cat.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
@@ -163,7 +164,7 @@ int main()
         return 1;
     }
     
-    tex_unit(hello, "tex0", 0);
+    unsigned int show_tex = tex_unit(hello, "tex0", 0);
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -185,11 +186,20 @@ int main()
         /* DRAW */
         sh_activate(hello);
 
-        glUniform1f(uni_ID, 0.5f);
-        tex_bind(pop_cat);
+        if (set_scale)
+        {
+            glUniform1f(scale, 0.5f);
+        }
+
+        if (show_tex)
+        {
+            tex_bind(pop_cat);
+        }
 
         vao_bind(vao1);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        tex_unbind(pop_cat);
         
 
         /* Swap front and back buffers */

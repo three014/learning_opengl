@@ -11,7 +11,7 @@
 #define BAD 0
 #define OK 1
 
-void processInput(GLFWwindow *);
+void processInput(GLFWwindow *window);
 void framebuffer_size_callback(GLFWwindow *, int, int);
 int error_callback(char *err, char *err_str);
 int info_callback(char *info);
