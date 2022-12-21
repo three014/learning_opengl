@@ -21,7 +21,11 @@ void processInput(GLFWwindow *window)
     }
 }
 
-void error_callback(char *err, char *err_str)
+/// @brief Prints current time and error messages to the console.
+/// @param err The short-form of the error message.
+/// @param err_str The more expanded form of the error message.
+/// @return 0 for "BAD"
+int error_callback(char *err, char *err_str)
 {
     char buffer[MAX_TIME_STRLEN];
     
@@ -30,27 +34,39 @@ void error_callback(char *err, char *err_str)
     _time64(&t);
     struct tm the_time;
     int guwah = localtime_s(&the_time, &t);
-    unsigned int display_time = (guwah == 0)
-            && strftime(buffer, sizeof(buffer), "%a %c", &the_time);
+    unsigned int display_time = (guwah == 0) && strftime(buffer, sizeof(buffer), "%a %c", &the_time);
 #else
     time_t t = time(0);
     struct tm *the_time = localtime(&t);
 
-    unsigned int display_time = the_time 
-            && strftime(buffer, sizeof(buffer), "%a %m/%d/%Y %T", the_time);
+    unsigned int display_time = the_time && strftime(buffer, sizeof(buffer), "%a %m/%d/%Y %T", the_time);
 #endif
 
-    if (display_time)
+    if (display_time && err && err_str)
     {
         printf("%s ERROR::%s %s\n", buffer, err, err_str);
     }
+    else if (!display_time && err && err_str)
+    {
+        printf("[Unknown Time] ERROR::%s %s\n", err, err_str);
+    }
+    else if (display_time && err && !err_str)
+    {
+        printf("%s ERROR::%s\n", buffer, err);
+    }
     else
     {
-        printf("[Unknown Time] ERROR::%s, %s\n", err, err_str);
+        printf("[Unknown Time] ERROR::UNKNOWN\n");
     }
+
+    return BAD;
 }
 
-void info_callback(char *info)
+
+/// @brief Prints current time and info message to console. 
+/// @param info The message to be displayed to the console.
+/// @return 1 for "OK"
+int info_callback(char *info)
 {
     char buffer[MAX_TIME_STRLEN];
 
@@ -59,23 +75,31 @@ void info_callback(char *info)
     _time64(&t);
     struct tm the_time;
     int guwah = localtime_s(&the_time, &t);
-    unsigned int display_time = (guwah == 0)
-            && strftime(buffer, sizeof(buffer), "%a %c", &the_time);
+    unsigned int display_time = (guwah == 0) && strftime(buffer, sizeof(buffer), "%a %c", &the_time);
 #else
     time_t t = time(0);
     struct tm *the_time = localtime(&t);
 
-    unsigned int display_time = the_time 
-            && strftime(buffer, sizeof(buffer), "%a %m/%d/%Y %T", the_time);
+    unsigned int display_time = the_time && strftime(buffer, sizeof(buffer), "%a %m/%d/%Y %T", the_time);
 #endif
 
-    if (display_time)
+    if (display_time && info)
     {
         printf("%s INFO::%s\n", buffer, info);
     }
-    else 
+    else if (!display_time && info)
     {
         printf("[Unknown Time] INFO::%s\n", info);
     }
+    else if (display_time && !info)
+    {
+        printf("%s INFO::OK\n", buffer);
+    }
+    else 
+    {
+        printf("[Unknown Time] INFO::OK\n");
+    }
+
+    return OK;
 }
 

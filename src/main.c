@@ -80,9 +80,6 @@ GLuint square_indices[] =
 
 int main()
 {
-    int success;
-    char infoLog[512]; 
-    
     /* Initialize the library */
     if (!glfwInit())
     {

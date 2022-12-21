@@ -8,10 +8,12 @@
 #include <errno.h>
 
 #define INFO_LOG_SIZE 512
+#define BAD 0
+#define OK 1
 
 void processInput(GLFWwindow *);
 void framebuffer_size_callback(GLFWwindow *, int, int);
-void error_callback(char *, char *);
-void info_callback(char *);
+int error_callback(char *, char *);
+int info_callback(char *);
 
 #endif
