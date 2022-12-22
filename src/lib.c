@@ -8,15 +8,12 @@
 
 #define MAX_TIME_STRLEN 1024
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height)
-{
+void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     glad_glViewport(0, 0, width, height);
 }
 
-void processInput(GLFWwindow *window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    {
+void processInput(GLFWwindow *window) {
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GL_TRUE);
     }
 }
@@ -25,8 +22,7 @@ void processInput(GLFWwindow *window)
 /// @param err The short-form of the error message.
 /// @param err_str The more expanded form of the error message.
 /// @return 0 for "BAD"
-int error_callback(char *err, char *err_str)
-{
+unsigned int error_callback(char *err, char *err_str) {
     char buffer[MAX_TIME_STRLEN];
     
 #ifdef _WIN32
@@ -42,20 +38,16 @@ int error_callback(char *err, char *err_str)
     unsigned int display_time = the_time && strftime(buffer, sizeof(buffer), "%a %m/%d/%Y %T", the_time);
 #endif
 
-    if (display_time && err && err_str)
-    {
+    if (display_time && err && err_str) {
         printf("%s ERROR::%s %s\n", buffer, err, err_str);
     }
-    else if (!display_time && err && err_str)
-    {
+    else if (!display_time && err && err_str) {
         printf("[Unknown Time] ERROR::%s %s\n", err, err_str);
     }
-    else if (display_time && err && !err_str)
-    {
+    else if (display_time && err && !err_str) {
         printf("%s ERROR::%s\n", buffer, err);
     }
-    else
-    {
+    else {
         printf("[Unknown Time] ERROR::UNKNOWN\n");
     }
 
@@ -66,8 +58,7 @@ int error_callback(char *err, char *err_str)
 /// @brief Prints current time and info message to console. 
 /// @param info The message to be displayed to the console.
 /// @return 1 for "OK"
-int info_callback(char *info)
-{
+unsigned int info_callback(char *info) {
     char buffer[MAX_TIME_STRLEN];
 
 #ifdef _WIN32
@@ -83,20 +74,16 @@ int info_callback(char *info)
     unsigned int display_time = the_time && strftime(buffer, sizeof(buffer), "%a %m/%d/%Y %T", the_time);
 #endif
 
-    if (display_time && info)
-    {
+    if (display_time && info) {
         printf("%s INFO::%s\n", buffer, info);
     }
-    else if (!display_time && info)
-    {
+    else if (!display_time && info) {
         printf("[Unknown Time] INFO::%s\n", info);
     }
-    else if (display_time && !info)
-    {
+    else if (display_time && !info) {
         printf("%s INFO::OK\n", buffer);
     }
-    else 
-    {
+    else {
         printf("[Unknown Time] INFO::OK\n");
     }
 

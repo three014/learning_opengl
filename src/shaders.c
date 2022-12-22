@@ -9,15 +9,13 @@
 #define BUFFER_SIZE 256
 #define NULL_CHAR '\0'
 
-typedef struct __VERTEX_OR_FRAGMENT_SHADER
-{
+typedef struct __VERTEX_OR_FRAGMENT_SHADER {
     GLuint ID;
     GLenum type;
     char *src_code;
 } small_shader;
 
-typedef struct __VERTEX_FRAGMENT_SHADER_PROGRAM
-{
+typedef struct __VERTEX_FRAGMENT_SHADER_PROGRAM {
     GLuint ID;
 } Shader;
 
@@ -27,16 +25,13 @@ unsigned int sh_shader_compile(small_shader **shader);
 unsigned int sh_prog_compile(Shader **program, small_shader **vert, small_shader **frag);
 void sh_shader_del(small_shader **del);
 
-char *sh_parse_file_helper(FILE *in)
-{
+char *sh_parse_file_helper(FILE *in) {
     int err = OK;
     char *shader = NULL;
-    if (!in)
-    {
+    if (!in) {
         err = error_callback("STDIO::FILE::FOPEN_FAILED", strerror(errno));
     }
-    else
-    {
+    else {
         char buffer[BUFFER_SIZE];
         const int shader_size = MAX_SHADER_SIZE;
         shader = malloc(sizeof *shader * shader_size);
@@ -45,12 +40,10 @@ char *sh_parse_file_helper(FILE *in)
         // Read every line of shader file and copy to 
         // shader string.
         // MAKE SURE NO BUFFER OVERFLOW!! 
-        while (!feof(in))
-        {
+        while (!feof(in)) {
             // Check if the shader string has enough space to 
             // hold the next line of the buffer.
-            if (shader_size - (jump - shader) <= BUFFER_SIZE)
-            {
+            if (shader_size - (jump - shader) <= BUFFER_SIZE) {
                 err = error_callback("FILE::READ::NOT_ENOUGH_SPACE",
                         "The input string is not large enough to contain "
                         "the shader information"); 
@@ -60,8 +53,7 @@ char *sh_parse_file_helper(FILE *in)
             // Get one line of the shader file 
             memset(buffer, 0, BUFFER_SIZE);
             fgets(buffer, BUFFER_SIZE, in);
-            if (feof(in))
-            {
+            if (feof(in)) {
                 break;
             }
 
@@ -71,8 +63,7 @@ char *sh_parse_file_helper(FILE *in)
             // Move the shader char pointer to 
             // the null terminating character
             jump = memchr(jump, NULL_CHAR, shader_size);
-            if (!jump)
-            {
+            if (!jump) {
                 err = error_callback("FILE::READ::OVERWROTE_NULL_CHAR",
                         "The input string got its null-terminating "
                         "character overwritten."); 
@@ -81,8 +72,7 @@ char *sh_parse_file_helper(FILE *in)
         }
     }
 
-    if (err == BAD)
-    {
+    if (err == BAD) {
         free(shader);
         shader = NULL;
     }
@@ -94,18 +84,15 @@ char *sh_parse_file_helper(FILE *in)
 /// @brief Opens a file and outputs its contents into a null-terminating string.
 /// @param src The full or relative pathname for the file to be read.
 /// @return A string containing the file contents, or NULL if something went wrong.
-char *sh_parse_file(const char *src)
-{
+char *sh_parse_file(const char *src) {
     FILE *in = fopen(src, "r");
     char *shader = sh_parse_file_helper(in);
     fclose(in);
     return shader;
 }
 
-unsigned int sh_shader_compile(small_shader **shader)
-{
-    if (*shader == NULL)
-    {
+unsigned int sh_shader_compile(small_shader **shader) {
+    if (*shader == NULL) {
         return 0;
     }
     int success;
@@ -116,15 +103,13 @@ unsigned int sh_shader_compile(small_shader **shader)
 
     glCompileShader((*shader)->ID);
 
-    if ((*shader)->src_code != NULL)
-    {
+    if ((*shader)->src_code != NULL) {
         free((*shader)->src_code);
         (*shader)->src_code = NULL;   
     }
     
     glGetShaderiv((*shader)->ID, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
+    if (!success) {
         glGetShaderInfoLog((*shader)->ID, INFO_LOG_SIZE, NULL, info_log);
         return error_callback("SHADER::VERTEX::COMPILATION_FAILED", info_log);
     }
@@ -132,8 +117,7 @@ unsigned int sh_shader_compile(small_shader **shader)
     return OK;
 }
 
-unsigned int sh_prog_compile(Shader **program, small_shader **vert, small_shader **frag)
-{
+unsigned int sh_prog_compile(Shader **program, small_shader **vert, small_shader **frag) {
     int success;
     char info_log[INFO_LOG_SIZE];
 
@@ -147,8 +131,7 @@ unsigned int sh_prog_compile(Shader **program, small_shader **vert, small_shader
 
 
     glGetProgramiv((*program)->ID, GL_LINK_STATUS, &success);
-    if (!success)
-    {
+    if (!success) {
         glGetProgramInfoLog((*program)->ID, 512, NULL, info_log);
         return error_callback("SHADER::PROGRAM::LINKING_FAILED", info_log);
     }
@@ -161,8 +144,7 @@ unsigned int sh_prog_compile(Shader **program, small_shader **vert, small_shader
 /// @param fragment_file The relative or absolute path to fragment file.
 /// @param out The outgoing shader program.
 /// @return Either 1 for "OK" or 0 for "BAD"
-unsigned int sh_prog_init(const char *vertex_file, const char *fragment_file, Shader **out)
-{
+unsigned int sh_prog_init(const char *vertex_file, const char *fragment_file, Shader **out) {
     int err = OK;
 
     char *vertex_code = NULL; 
@@ -172,38 +154,30 @@ unsigned int sh_prog_init(const char *vertex_file, const char *fragment_file, Sh
     small_shader *frag = NULL;
 
     vertex_code = sh_parse_file(vertex_file);
-    if (!vertex_code)
-    {
+    if (!vertex_code) {
         err = BAD;
     }
 
-    if (err == OK)
-    {
+    if (err == OK) {
         fragment_code = sh_parse_file(fragment_file);
-        if (!fragment_code)
-        {
+        if (!fragment_code) {
             err = BAD;
         }
     }
 
-    if (err == OK)
-    {
+    if (err == OK) {
         new_program = malloc(sizeof *new_program);
-        if (!new_program)
-        {
+        if (!new_program) {
             err = error_callback("SHADER::PROGRAM::ALLOCATION_FAILED", strerror(errno));
         }
     }
 
-    if (err == OK)
-    {
+    if (err == OK) {
         vert = malloc(sizeof *vert);
-        if (!vert)
-        {
+        if (!vert) {
             err = error_callback("SHADER::VERTEX::ALLOCATION_FAILED", strerror(errno));
         }
-        else 
-        {
+        else {
             vert->src_code = vertex_code;
             vert->type = GL_VERTEX_SHADER;
             vertex_code = NULL; // Shouldn't be a mem leak, since we're freeing the string in next function
@@ -211,15 +185,12 @@ unsigned int sh_prog_init(const char *vertex_file, const char *fragment_file, Sh
         }
     }
 
-    if (err == OK)
-    {
+    if (err == OK) {
         frag = malloc(sizeof *frag);
-        if (!frag)
-        {
+        if (!frag) {
             err = error_callback("SHADER::FRAGMENT::ALLOCATION_FAILED", strerror(errno));
         }
-        else 
-        {
+        else {
             frag->src_code = fragment_code;
             frag->type = GL_FRAGMENT_SHADER;
             fragment_code = NULL; // Shouldn't be a mem leak either for the same reason as before
@@ -227,33 +198,26 @@ unsigned int sh_prog_init(const char *vertex_file, const char *fragment_file, Sh
         }
     }
     
-    if (err = OK)
-    {
+    if (err = OK) {
         err = sh_prog_compile(&new_program, &vert, &frag);
     }
 
-    if (err == BAD)
-    {
-        if (vertex_code != NULL)
-        {
+    if (err == BAD) {
+        if (vertex_code != NULL) {
             free(vertex_code);
             vertex_code = NULL;
         }
-        if (fragment_code != NULL)
-        {
+        if (fragment_code != NULL) {
             free(fragment_code);
             fragment_code = NULL;
         }
-        if (vert != NULL)
-        {
+        if (vert != NULL) {
             sh_shader_del(&vert);
         }
-        if (frag != NULL)
-        {
+        if (frag != NULL) {
             sh_shader_del(&frag);
         }
-        if (new_program != NULL)
-        {
+        if (new_program != NULL) {
             sh_prog_del(&new_program);
         }
     }
@@ -267,17 +231,14 @@ unsigned int sh_prog_init(const char *vertex_file, const char *fragment_file, Sh
 
 /// @brief Deletes a vertex or fragment shader from OpenGL context and memory.
 /// @param del Reference to address of vertex or fragment shader.
-void sh_shader_del(small_shader **del)
-{
-    if (*del == NULL)
-    {
+void sh_shader_del(small_shader **del) {
+    if (*del == NULL) {
         return;
     }
 
     glDeleteShader((*del)->ID);
     
-    if ((*del)->src_code != NULL)
-    {
+    if ((*del)->src_code != NULL) {
         free((*del)->src_code);
         (*del)->src_code = NULL;
     }
@@ -287,10 +248,8 @@ void sh_shader_del(small_shader **del)
 
 /// @brief Deletes a shader program from OpenGL context and memory.
 /// @param del Reference to address of shader program.
-void sh_prog_del(Shader **del)
-{
-    if (*del == NULL)
-    {
+void sh_prog_del(Shader **del) {
+    if (*del == NULL) {
         return;
     }
 
@@ -300,8 +259,7 @@ void sh_prog_del(Shader **del)
     *del = NULL;
 }
 
-void sh_activate(Shader *shader_program)
-{
+void sh_activate(Shader *shader_program) {
     if (shader_program == NULL)
     {
         return;
@@ -315,25 +273,20 @@ void sh_activate(Shader *shader_program)
 /// @param var_name 
 /// @param uniloc
 /// @return 
-unsigned int sh_get_uniloc(Shader *shader_program, const char *var_name, GLint *uniloc)
-{
+unsigned int sh_get_uniloc(Shader *shader_program, const char *var_name, GLint *uniloc) {
     unsigned int err = OK;
-    if (shader_program == NULL || var_name == NULL)
-    {
+    if (shader_program == NULL || var_name == NULL) {
         err = BAD;
     }
 
-    if (err == OK)
-    {
+    if (err == OK) {
         GLint uniform_location = glGetUniformLocation(shader_program->ID, var_name);
-        if (uniform_location == -1)
-        {
+        if (uniform_location == -1) {
             err = error_callback("SHADER::UNIFORM::NOT_FOUND", 
                     "Could not find the specified uniform variable within "
                     "the specified shader program.");
         }
-        else
-        {
+        else {
             *uniloc = uniform_location;
         }
     }
