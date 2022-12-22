@@ -25,7 +25,7 @@ VBO *vbo_init(GLfloat *vertices, GLsizeiptr size) {
 
 void vbo_bind(VBO *self) {
     if (self == NULL) {
-        return NULL;
+        return;
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, self->ID);
