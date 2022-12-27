@@ -10,6 +10,8 @@ While I am doing this project to learn how to create graphical programs using Op
 - cmake 3.16.3 or higher
 - Glad OpenGL Loader (Core, Version 3.3) 
   - Should be included already in include/ and src/
+- STB Image Libary (Version 2.27x)
+  - Should be included already in include/stb
 - (I'll add more to this list as I remember)
 
 ## Steps to get up and running:
