@@ -198,7 +198,7 @@ unsigned int sh_prog_init(const char *vertex_file, const char *fragment_file, Sh
         }
     }
     
-    if (err = OK) {
+    if (err == OK) {
         err = sh_prog_compile(&new_program, &vert, &frag);
     }
 
