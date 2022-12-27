@@ -1,18 +1,14 @@
-#ifndef SHADERS_H
-#define SHADERS_H
+#ifndef __SHADERS_H
+#define __SHADERS_H
 
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
-#include <stdio.h>
-#include <string.h>
+typedef struct __VERTEX_FRAGMENT_SHADER_PROGRAM Shader;
 
-#define BUFFER_SIZE 256
-#define NULL_CHAR '\0'
-
-int parse_shader(FILE *, char **, int);
-void build_vertex_shader(FILE *, char **, unsigned int, unsigned int *);
-void build_fragment_shader(FILE *, char **, unsigned int, unsigned int *);
-int compile_shaders(unsigned int *, unsigned int *, unsigned int *);
+unsigned int sh_prog_init(const char *vertex_file, const char *fragment_file, Shader **out);
+void sh_prog_del(Shader **del);
+void sh_activate(Shader *shader_program);
+unsigned int sh_get_uniloc(Shader *shader_program, const char *var_name, GLint *uniloc);
 
 #endif
